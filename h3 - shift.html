@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&display=swap" rel="stylesheet">
+
+<title>CPCT Hindi Typing</title>
+
+<style>
+body {
+  font-family: 'Noto Sans Devanagari','Segoe UI', sans-serif;
+  margin: 0;
+  color: white;
+  text-align: center;
+}
+
+.box {
+  background: rgba(0,0,0,0.7);
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 900px;
+}
+
+#text { font-size:26px; letter-spacing:3px; }
+.correct { color:#22c55e; }
+.wrongchar { color:red; text-decoration:underline; }
+.current { background:#3b82f6; padding:3px; border-radius:4px; }
+
+#input {
+  width:70%;
+  padding:12px;
+  font-size:18px;
+  border-radius:8px;
+  border:2px solid #3b82f6;
+  background:transparent;
+  color:white;
+  display:block;
+  margin:15px auto;
+}
+
+.keyboard {
+  background:#1e293b;
+  padding:20px;
+  border-radius:12px;
+  width:fit-content;
+  margin:30px auto;
+}
+
+.row {
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-bottom:6px;
+}
+
+.key {
+  min-width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#334155;
+  border-radius:6px;
+  font-size:11px;
+  line-height:1.2;
+  text-align:center;
+  transition:0.15s;
+}
+
+.backspace{min-width:110px}
+.tab{min-width:80px}
+.caps{min-width:95px}
+.enter{min-width:110px}
+.shift{min-width:130px}
+.space{min-width:320px}
+.ctrl,.alt{min-width:75px}
+
+.key.glow {
+  box-shadow:0 0 15px currentColor;
+  transform:scale(1.1);
+}
+
+.stats {
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  flex-wrap:wrap;
+  margin-top:15px;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.stats div {
+  background: rgba(0,0,0,0.6);
+  padding:6px 12px;
+  border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>⌨️ CPCT Hindi Typing</h2>
+
+<div id="text"></div>
+
+<input type="text" id="input" placeholder="Typing start kare...">
+
+<div class="stats">
+  <div>⏱ Time: <span id="time">60</span>s</div>
+  <div>⚡ WPM: <span id="speed">0</span></div>
+  <div>🎯 Accuracy: <span id="accuracy">100</span>%</div>
+  <div>❌ Wrong: <span id="wrong">0</span></div>
+  <div>✅ Right: <span id="right">0</span></div>
+</div>
+</div>
+
+<div class="keyboard" id="keyboard"></div>
+
+<script>
+
+// ===== LESSON =====
+let lessonText="प प प प फ फ फ";
+
+// ===== MAP =====
+const hindiMap = {
+"q":"ौ","w":"ै","e":"ा","r":"ी","t":"ू","y":"ब","u":"ह","i":"ग","o":"द","p":"ज",
+"a":"ो","s":"े","d":"्","f":"ि","g":"ु","h":"प","j":"र","k":"क","l":"त",";":"च","'":"ट",
+"z":"","x":"ं","c":"म","v":"न","b":"व","n":"ल","m":"स",",":"ए",".":"ण","/":"य"
+};
+
+const hindiShiftMap = {
+"Q":"औ","W":"ऐ","E":"आ","R":"ई","T":"ऊ","Y":"भ","U":"ङ","I":"घ","O":"ध","P":"झ",
+"A":"ओ","S":"ए","D":"अ","F":"इ","G":"उ","H":"फ","J":"ऱ","K":"ख","L":"थ",":":"छ","\"":"ठ",
+"Z":"","X":"ँ","C":"ण","V":"","B":"","N":"","M":"श","<":"ढ",">":"ष","?":"य"
+};
+
+// ===== KEYBOARD =====
+const layout=[
+["Esc","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"],
+["`","1","2","3","4","5","6","7","8","9","0","-","=","Backspace"],
+["Tab","q","w","e","r","t","y","u","i","o","p","[","]","\\"],
+["Caps","a","s","d","f","g","h","j","k","l",";","'","Enter"],
+["Shift","z","x","c","v","b","n","m",",",".","/","Shift"],
+["Ctrl","Alt","Space","Alt","Ctrl"]
+];
+
+function createKeyboard(){
+  let kb=document.getElementById("keyboard");
+  kb.innerHTML="";
+
+  layout.forEach(row=>{
+    let div=document.createElement("div");
+    div.className="row";
+
+    row.forEach(key=>{
+      let k=document.createElement("div");
+      k.className="key";
+
+      let lower=key.toLowerCase();
+      let upper=key.toUpperCase();
+
+      k.id="key-"+lower;
+
+      let normal = hindiMap[lower] || "";
+      let shift = hindiShiftMap[upper] || "";
+
+      if(normal || shift){
+        k.innerHTML = key + "<br>" + normal + (shift ? " / " + shift : "");
+      } else {
+        k.innerHTML = key;
+      }
+
+      if(key==="Backspace")k.classList.add("backspace");
+      if(key==="Tab")k.classList.add("tab");
+      if(key==="Caps")k.classList.add("caps");
+      if(key==="Enter")k.classList.add("enter");
+      if(key==="Shift")k.classList.add("shift");
+      if(key==="Space")k.classList.add("space");
+      if(key==="Ctrl")k.classList.add("ctrl");
+      if(key==="Alt")k.classList.add("alt");
+
+      div.appendChild(k);
+    });
+
+    kb.appendChild(div);
+  });
+}
+
+createKeyboard();
+
+// ===== TEXT =====
+function renderText(val=""){
+  let html="";
+  for(let i=0;i<lessonText.length;i++){
+    let c=lessonText[i];
+
+    if(i<val.length){
+      html += (val[i]===c)
+        ? `<span class="correct">${c}</span>`
+        : `<span class="wrongchar">${c}</span>`;
+    }
+    else if(i===val.length){
+      html += `<span class="current">${c}</span>`;
+    }
+    else{
+      html += c===" "?"&nbsp;":c;
+    }
+  }
+  document.getElementById("text").innerHTML=html;
+}
+renderText();
+
+// ===== VAR =====
+let input=document.getElementById("input");
+let correct=0,wrong=0,total=0;
+
+// ===== TIMER =====
+let time=60,timer=null,started=false;
+
+function startTimer(){
+  timer=setInterval(()=>{
+    if(time<=0){
+      clearInterval(timer);
+      input.disabled=true;
+      document.getElementById("time").innerText=0;
+      alert("Time Over!");
+      return;
+    }
+    time--;
+    document.getElementById("time").innerText=time;
+  },1000);
+}
+
+// ===== TYPING =====
+input.addEventListener("keydown",(e)=>{
+
+  if(e.key==="Backspace"){
+    e.preventDefault();
+    input.value=input.value.slice(0,-1);
+    updateTyping();
+    return;
+  }
+
+  if(e.key===" "){
+    e.preventDefault();
+    input.value+=" ";
+    updateTyping();
+    return;
+  }
+
+  if(!started){
+    startTimer();
+    started=true;
+  }
+
+  e.preventDefault();
+
+  let key=e.key;
+  let char="";
+
+  if(e.shiftKey && hindiShiftMap[key]){
+    char=hindiShiftMap[key];
+  }
+  else if(hindiMap[key.toLowerCase()]){
+    char=hindiMap[key.toLowerCase()];
+  }
+
+  if(char){
+    input.value+=char;
+  }
+
+  updateTyping();
+});
+
+// ===== UPDATE =====
+function updateTyping(){
+  let val=input.value;
+  correct=0; wrong=0;
+
+  for(let i=0;i<val.length;i++){
+    if(val[i]===lessonText[i]) correct++;
+    else wrong++;
+  }
+
+  total=val.length;
+  renderText(val);
+  updateStats();
+}
+
+// ===== EFFECT =====
+function randomColor(){
+  const c=["#22c55e","#3b82f6","#eab308","#ef4444","#a855f7"];
+  return c[Math.floor(Math.random()*c.length)];
+}
+
+document.addEventListener("keydown",(e)=>{
+  let key=e.key;
+  if(key===" ") key="space";
+
+  let el=document.getElementById("key-"+key.toLowerCase());
+
+  if(el){
+    el.style.background=randomColor();
+    el.classList.add("glow");
+
+    setTimeout(()=>{
+      el.style.background="#334155";
+      el.classList.remove("glow");
+    },150);
+  }
+});
+
+// ===== STATS =====
+function updateStats(){
+  document.getElementById("right").innerText=correct;
+  document.getElementById("wrong").innerText=wrong;
+
+  let acc=total?(correct/total)*100:100;
+  document.getElementById("accuracy").innerText=acc.toFixed(1);
+
+  let words=input.value.trim().split(/\s+/).filter(w=>w).length;
+  let timeSpent=60-time;
+  let wpm=timeSpent>0?(words/timeSpent)*60:0;
+
+  document.getElementById("speed").innerText=wpm.toFixed(1);
+}
+
+</script>
+
+</body>
+</html>
